@@ -1,12 +1,12 @@
 import os
 import numpy as np
 import json
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 # Extract an image of a traffic light
 temp = Image.open("RedLights2011_Medium/RL-001.jpg")
 temp = temp.crop((316, 154, 323, 171))
-
+#temp = temp.filter(ImageFilter.BLUR)
 # Normalize
 k = np.asarray(temp).copy()
 x, y, _ = k.shape
@@ -16,6 +16,7 @@ k = k / np.linalg.norm(k)
 # Extract different size image
 temp = Image.open("RedLights2011_Medium/RL-010.jpg")
 temp = temp.crop((321, 27, 349, 92))
+#temp = temp.filter(ImageFilter.BLUR)
 
 k2 = np.asarray(temp).copy()
 x_2, y_2, _ = k2.shape
@@ -48,21 +49,23 @@ def detect_red_light(I):
     I = I.copy()
     threshold = 0.92
 
-    results = np.zeros((row - x, col - y))
+    results = np.zeros((row // 2, col - y))
 
     # Check for one of the traffic lights
-    for i in range(row - x):
+    for i in range(row // 2):
         for j in range(col - y):
-            region = I[i:i+x, j:j+y].flatten()
+            region = I[i:i+x, j:j+y]
+            region = region.flatten()
             norm = np.linalg.norm(region)
             if norm > 0:
                 region = region / norm
             results[i, j] = np.inner(region, k)
     # Check for the other size traffic light
-    results2 = np.zeros((row - x_2, col - y_2))
-    for i in range(row - x_2):
+    results2 = np.zeros((row // 2, col - y_2))
+    for i in range(row // 2):
         for j in range(col - y_2):
-            region = I[i:i+x_2, j:j+y_2].flatten()
+            region = I[i:i+x_2, j:j+y_2]
+            region = region.flatten()
             norm = np.linalg.norm(region)
             if norm > 0:
                 region = region / norm
